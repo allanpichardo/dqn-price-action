@@ -3,6 +3,7 @@ import numpy as np
 from keras.models import load_model
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout
 from keras.optimizers import Adam
 
 
@@ -45,8 +46,14 @@ class Agent:
 
     def _model(self):
         model = Sequential()
-        model.add(Dense(24, activation='relu', input_shape=(self.state_size, 4)))
-        model.add(Dense(24, activation='relu'))
+        model.add(Dense(64, activation='relu', input_shape=(self.state_size, 4)))
+        model.add(Dropout(0.2))
+        model.add(Dense(32, activation='relu'))
+        model.add(Dropout(0.2))
+        model.add(Dense(16, activation='relu'))
+        model.add(Dropout(0.2))
+        model.add(Dense(8, activation='relu'))
+        model.add(Dropout(0.2))
         model.add(Dense(self.action_size, activation='relu'))
 
         model.compile(Adam(lr=self.learning_rate), loss='mse')
