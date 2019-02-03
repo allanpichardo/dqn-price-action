@@ -9,8 +9,8 @@ if len(sys.argv) != 5:
 stock_name, window_size, episode_count, starting_balance = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])
 
 trading_fee = 5
-risk = 0.1
-agent = Agent(window_size)
+risk = 0.5
+agent = Agent(window_size, model_name="trader")
 data = getStockDataVec(stock_name)
 l = len(data) - 1
 batch_size = 32
@@ -38,7 +38,7 @@ for e in range(episode_count + 1):
             cost = data[t][3] * shares
             agent.inventory.append([shares, cost])
             cash = cash - cost - trading_fee
-            reward -= trading_fee #trading fee
+            reward -= 0.1 #trading fee
             print("Buy " + str(shares) + " shares @ " + formatPrice(data[t][3]) + " | Balance: " + formatPrice(cash))
 
         elif action == 2 and len(agent.inventory) > 0:  # sell
@@ -47,7 +47,7 @@ for e in range(episode_count + 1):
             bought_shares = order[0]
             current_value = bought_shares * data[t][3]
             cash += current_value
-            reward = max(current_value - bought_price, 0) - trading_fee
+            reward = 1 if max(current_value - bought_price, 0) > 0 else -1
             #reward = (current_value - bought_price) - trading_fee #subtracting trading fee
             cash -= trading_fee
             total_profit += current_value - bought_price

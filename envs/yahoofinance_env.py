@@ -19,11 +19,12 @@ class YahooFinanceEnv(gym.Env):
 
     def __init__(self, price_history: PriceHistory, starting_balance=1000, lookback=5, trading_fee=4.99, risk=0.1):
         self._starting_balance = starting_balance
+        self._lookbabck = lookback
         self.trading_days = price_history.get_trading_days()
         self.trading_fee = trading_fee
         self.risk = risk
         self.cash = starting_balance
-        self.observation_space = lookback
+        self.observation_space = 4
         self.price_history = price_history
         self.viewer = None
         self.balance = starting_balance
@@ -46,12 +47,12 @@ class YahooFinanceEnv(gym.Env):
         return observation, reward, done, info
 
     def reset(self):
-        self.__init__(self.price_history)
+        self.__init__(self.price_history, starting_balance=self._starting_balance, lookback=self._lookbabck, trading_fee=self.trading_fee, risk=self.risk)
         return self._get_observation(self.current_step)
 
     def _get_observation(self,step):
         observations = []
-        for i in range(self.current_step - self.observation_space, self.current_step):
+        for i in range(self.current_step - self._lookbabck, self.current_step):
             candle = self.trading_days[i].get_candle()
             obs = [
                 candle.get_direction(),
@@ -104,7 +105,7 @@ class YahooFinanceEnv(gym.Env):
             self.inventory.append([shares, cost])
             self.cash = self.cash - cost - self.trading_fee
             #reward -= self.trading_fee / 100 #trading fee
-            print("Buy " + str(shares) + " shares @ " + formatPrice(close_price))
+            #print("Buy " + str(shares) + " shares @ " + formatPrice(close_price))
 
         elif action == SELL and len(self.inventory) > 0:  # sell
             order = self.inventory.pop(0)
@@ -114,7 +115,7 @@ class YahooFinanceEnv(gym.Env):
             self.cash += current_value - self.trading_fee
             take = current_value - bought_price
             reward = 2 if take - self.trading_fee > 0 else max(take, -1) - (self.trading_fee / 100)
-            print("Sell " + str(bought_shares) + " @ " + formatPrice(close_price) + " [Net " + formatPrice(current_value - bought_price) + "]")
+            #print("Sell " + str(bought_shares) + " @ " + formatPrice(close_price) + " [Net " + formatPrice(current_value - bought_price) + "]")
 
         self.balance = getTotalPriceOfHoldings(self.inventory, close_price) + self.cash
         return reward
