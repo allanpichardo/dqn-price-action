@@ -2,8 +2,9 @@ import numpy as np
 import gym
 
 import keras.backend as K
+from keras import Input
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Convolution2D, Permute, Conv1D
+from keras.layers import Dense, Activation, Flatten, Convolution2D, Permute, Conv1D, LSTM
 from keras.optimizers import Adam
 
 # Get the environment and extract the number of actions.
@@ -22,23 +23,37 @@ np.random.seed(123)
 env.seed(123)
 nb_actions = env.action_space
 
-input_shape=(5,) + (1,4)
+#input_shape = (5,) + (1, 4)
+input_shape = (1,)
+batch_size = 1
+timesteps = 5
+parameters = 4
+
+print(env.get_shape())
+
 model = Sequential()
-model.add(Flatten(input_shape=input_shape))
-model.add(Activation('relu'))
-model.add(Dense(512, input_shape=input_shape))
-model.add(Activation('relu'))
-model.add(Dense(512, input_shape=input_shape))
+model.add(Flatten(input_shape=(1,) + env.get_shape()))
+model.add(Dense(1))
 model.add(Activation('relu'))
 model.add(Dense(512))
 model.add(Activation('relu'))
-model.add(Dense(nb_actions))
+model.add(Dense(512))
+model.add(Activation('relu'))
+model.add(Dense(512))
+model.add(Activation('relu'))
+model.add(Dense(512))
+model.add(Activation('relu'))
+model.add(Dense(512))
+model.add(Activation('relu'))
+model.add(Dense(512))
+model.add(Activation('relu'))
+model.add(Dense(3))
 model.add(Activation('linear'))
 print(model.summary())
 
 # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 # even the metrics!
-memory = SequentialMemory(1000000, window_length=5)
+memory = SequentialMemory(1000000, window_length=1)
 policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
                               nb_steps=1000)
 dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,

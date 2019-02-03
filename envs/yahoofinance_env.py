@@ -46,6 +46,11 @@ class YahooFinanceEnv(gym.Env):
 
         return observation, reward, done, info
 
+    def get_shape(self):
+        input = self._get_observation(self.current_step)
+        return input.shape
+
+
     def reset(self):
         self.__init__(self.price_history, starting_balance=self._starting_balance, lookback=self._lookbabck, trading_fee=self.trading_fee, risk=self.risk)
         return self._get_observation(self.current_step)
@@ -61,6 +66,8 @@ class YahooFinanceEnv(gym.Env):
                 candle.get_wick_up()
             ]
             observations.append(obs)
+        observations = np.array(observations)
+        observations.reshape(self._lookbabck, 1, 4)
         return observations
 
     def render(self, mode='human', close=False):
@@ -113,8 +120,8 @@ class YahooFinanceEnv(gym.Env):
             bought_shares = order[0]
             current_value = bought_shares * close_price
             self.cash += current_value - self.trading_fee
-            take = current_value - bought_price
-            reward = 2 if take - self.trading_fee > 0 else max(take, -1) - (self.trading_fee / 100)
+            take = (current_value - bought_price) / bought_shares
+            reward = math.tanh(take)
             #print("Sell " + str(bought_shares) + " @ " + formatPrice(close_price) + " [Net " + formatPrice(current_value - bought_price) + "]")
 
         self.balance = getTotalPriceOfHoldings(self.inventory, close_price) + self.cash
