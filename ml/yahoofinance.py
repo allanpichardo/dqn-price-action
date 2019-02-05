@@ -24,6 +24,9 @@ class PriceHistory:
 
         return days
 
+    def get_length(self):
+        return len(self._raw_df)
+
 
 class TradingDay:
 
@@ -94,5 +97,12 @@ class Candle:
     def get_volume(self):
         return self._volume
 
-    def dataframe(self):
-        df = pd
+    def to_vector(self):
+        return [
+            self._close,
+            self._direction,
+            self._size,
+            self._wick_up,
+            self._wick_down,
+            self._volume
+        ]
